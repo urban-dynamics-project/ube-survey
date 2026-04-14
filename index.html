@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>宇部市回遊調査アンケート</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 10px; background-color: #f4f7f6; color: #333; }
+        .section { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; font-size: 16px; border-left: 5px solid #007bff; padding-left: 10px; margin-bottom: 15px; }
+        label { display: block; margin-top: 12px; font-weight: bold; font-size: 14px; }
+        select, input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        #map { height: 350px; width: 100%; border-radius: 8px; margin-top: 10px; }
+        #log { margin-top: 10px; font-size: 13px; color: #555; background: #eee; padding: 8px; border-radius: 4px; }
+        #sendBtn { width: 100%; padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 30px; }
+        .popup-content label { display: block; margin-bottom: 5px; }
+        .popup-content input, .popup-content select { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <h2 style="text-align:center; font-size: 20px;">宇部市 回遊調査</h2>
+
+    <div class="section">
+        <h3>1. あなたについて</h3>
+        <label>年齢</label>
+        <select id="age"><option value="">選択してください</option><option value="10代">10代</option><option value="20代">20代</option><option value="30代">30代</option><option value="40代">40代</option><option value="50代">50代</option><option value="60代以上">60代以上</option></select>
+        
+        <label>性別</label>
+        <select id="gender"><option value="">選択してください</option><option value="男性">男性</option><option value="女性">女性</option><option value="回答しない">回答しない</option></select>
+
+        <label>同行者の人数（自分を含めて）</label>
+        <input type="number" id="groupSize" placeholder="例: 1">
+
+        <label>同行者の内訳</label>
+        <select id="groupType">
+            <option value="">選択してください</option>
+            <option value="単独">単独（1人）</option>
+            <option value="友人">友人</option>
+            <option value="家族・親族">家族・親族</option>
+            <option value="職場・仕事関係">職場・仕事関係</option>
+            <option value="その他">その他</option>
+        </select>
+
+        <label>宇部市への来訪頻度</label>
+        <select id="frequency">
+            <option value="">選択してください</option>
+            <option value="初めて">初めて</option>
+            <option value="年1回程度">年1回程度</option>
+            <option value="月1回程度">月1回程度</option>
+            <option value="週1回以上">週1回以上</option>
+            <option value="毎日（通勤通学含む）">毎日（通勤通学含む）</option>
+        </select>
+
+        <label>本日の主な来場目的</label>
+        <select id="mainPurpose">
+            <option value="">選択してください</option>
+            <option value="イベント目的">イベント目的</option>
+            <option value="買い物・飲食">買い物・飲食</option>
+            <option value="仕事・用事">仕事・用事</option>
+            <option value="たまたま通りがかった">たまたま通りがかった</option>
+        </select>
+
+        <label>移動に利用した交通手段</label>
+        <select id="transport"><option value="">選択してください</option><option value="徒歩">徒歩</option><option value="自転車">自転車</option><option value="自家用車">自家用車</option><option value="バス">バス</option><option value="JR">JR</option><option value="タクシー">タクシー</option><option value="その他">その他</option></select>
+
+        <label>本日の滞在予定時間（分）</label>
+        <input type="number" id="stayTime" placeholder="例: 120">
+    </div>
+
+    <div class="section">
+        <h3>2. 消費について</h3>
+        <label>イベント内での消費金額（円）</label>
+        <input type="number" id="expEvent" placeholder="例: 2000">
+        <label>主な消費内容（イベント内）</label>
+        <textarea id="contentEvent" rows="2"></textarea>
+
+        <label style="margin-top:20px;">イベント「外」での消費金額（円）</label>
+        <input type="number" id="expOutside" placeholder="例: 1000">
+        <label>主な消費内容（イベント外）</label>
+        <textarea id="contentOutside" rows="2"></textarea>
+    </div>
+
+    <div class="section">
+        <h3>3. 訪れた場所</h3>
+        <p style="font-size:12px; color:#666;">地図をタップして地点を記録してください（複数可）。</p>
+        <div id="map"></div>
+        <div id="log">記録された地点: 0件</div>
+    </div>
+
+    <button id="sendBtn" onclick="sendData()">アンケートを送信する</button>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // あなたの最新URL
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwlnuvPNPbV3EfWPbRqi38AM5vWJsEDKtIiWIHpY-BvRtIuq-gCT4heLPdZoE4R2TE/exec";
+        
+        const map = L.map('map').setView([33.9515, 131.2465], 15); 
+        
+        // --- Googleマップ風レイヤー ---
+        L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '&copy; Google Maps'
+        }).addTo(map);
+        // --------------------------
+
+        let surveyData = [];
+
+        map.on('click', function(e) {
+            const lat = e.latlng.lat, lng = e.latlng.lng;
+            const popupNode = document.createElement('div');
+            popupNode.className = "popup-content";
+            popupNode.innerHTML = `
+                <label>時間</label>
+                <input type="time" id="vTime">
+                <label>目的</label>
+                <select id="p">
+                    <option value="飲食">飲食</option>
+                    <option value="買い物">買い物</option>
+                    <option value="見学">見学</option>
+                    <option value="休憩">休憩</option>
+                    <option value="その他">その他</option>
+                </select>
+                <button onclick="savePoint(${lat}, ${lng})" style="width:100%; background:#28a745; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold;">地点を保存</button>
+            `;
+            L.popup().setLatLng(e.latlng).setContent(popupNode).openOn(map);
+        });
+
+        function savePoint(lat, lng) {
+            const time = document.getElementById('vTime').value, purpose = document.getElementById('p').value;
+            if(!time) return alert("時間を入力してください");
+            surveyData.push({ lat, lng, time, purpose });
+            L.marker([lat, lng]).addTo(map).bindPopup(`<b>${purpose}</b><br>${time}`).openPopup();
+            document.getElementById('log').innerHTML = `記録された地点: ${surveyData.length}件`;
+            map.closePopup();
+        }
+
+        function sendData() {
+            const age = document.getElementById('age').value, gender = document.getElementById('gender').value;
+            if(!age || !gender || surveyData.length === 0) return alert("年齢、性別、地図の記録を入力してください");
+
+            if(confirm("調査にご協力いただきありがとうございます。この内容で回答を送信しますか？")) {
+                const payload = {
+                    userId: "ID_" + new Date().getTime(),
+                    attr: {
+                        age: age, gender: gender,
+                        groupSize: document.getElementById('groupSize').value,
+                        groupType: document.getElementById('groupType').value,
+                        freq: document.getElementById('frequency').value,
+                        mainP: document.getElementById('mainPurpose').value,
+                        stay: document.getElementById('stayTime').value,
+                        expE: document.getElementById('expEvent').value,
+                        contE: document.getElementById('contentEvent').value,
+                        expO: document.getElementById('expOutside').value,
+                        contO: document.getElementById('contentOutside').value,
+                        trans: document.getElementById('transport').value
+                    },
+                    points: surveyData
+                };
+
+                document.getElementById('sendBtn').innerText = "送信中...";
+                document.getElementById('sendBtn').disabled = true;
+
+                fetch(gasUrl, { method: "POST", mode: "no-cors", body: JSON.stringify(payload) })
+                .then(() => {
+                    alert("送信が完了しました！ご協力ありがとうございました。");
+                    location.reload();
+                }).catch(e => {
+                    alert("送信エラーが発生しました。");
+                    document.getElementById('sendBtn').disabled = false;
+                    document.getElementById('sendBtn').innerText = "アンケートを送信する";
+                });
+            }
+        }
+    </script>
+</body>
+</html>
