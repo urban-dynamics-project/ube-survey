@@ -118,11 +118,9 @@
                 <select id="extraDetail"></select>
             </div>
 
-            <div class="road-map-container">
-                <label style="color: #333; margin-top: 0; line-height: 1.4;">
-                    【道路の確認】今日通った道路をすべて選んでください（複数可）
-                </label>
-                <img src="map.png" alt="道路地図" style="width: 100%; max-width: 500px; height: auto; border: 1px solid #ccc; margin-top: 10px; display: block; margin-left: auto; margin-right: auto; border-radius: 5px;">                
+          <div class="road-map-container">
+                <label>【道路の確認】今日通った道路をすべて選んでください</label>
+                <img src="./map.png" alt="道路地図" style="width: 100%; max-width: 500px; height: auto; margin: 10px 0; border-radius: 5px;" onerror="this.src='https://via.placeholder.com/500x300?text=map.pngが見つかりません';">
                 <div class="road-grid">
                     <label class="road-item"><input type="checkbox" name="roads" value="1">①</label>
                     <label class="road-item"><input type="checkbox" name="roads" value="2">②</label>
@@ -135,7 +133,6 @@
                     <label class="road-item"><input type="checkbox" name="roads" value="9">⑨</label>
                     <label class="road-item"><input type="checkbox" name="roads" value="10">⑩</label>
                 </div>
-                <label class="checkbox-item" style="margin-top: 10px; font-weight: normal; justify-content: center;"><input type="checkbox" name="roads" value="なし"> この中にはない / わからない</label>
             </div>
 
             <label>本日の滞在予定時間</label>
