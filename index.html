@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
+    <meta charset="UTF-8">
     <title>調査アンケート</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { font-family: sans-serif; margin: 0; padding: 10px; background-color: #f4f7f6; color: #333; }
@@ -20,7 +21,7 @@
         .road-item { display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-weight: bold; font-size: 14px; }
         .road-item input { margin-right: 5px; width: 18px; height: 18px; }
 
-        #map { height: 400px; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; }
+        #map { height: 450px; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; background: #f0f0f0; }
         #log { margin-top: 10px; font-size: 14px; color: #0056b3; background: #eef4ff; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px solid #b3d7ff;}
         #sendBtn { width: 100%; padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 30px; }
         
@@ -120,7 +121,7 @@
 
             <div class="road-map-container">
                 <label>【道路の確認】今日通った道路を選んでください</label>
-                <img src="./map.png" alt="道路地図" style="width: 100%; max-width: 500px; height: auto; margin: 10px 0; border-radius: 5px;" onerror="this.src='https://via.placeholder.com/500x300?text=map.pngが見つかりません';">
+                <img src="map.png" alt="道路地図" style="width: 100%; max-width: 500px; height: auto; margin: 10px 0; border-radius: 5px;" onerror="this.src='https://via.placeholder.com/500x300?text=map.pngが見つかりません';">
                 <div class="road-grid">
                     <label class="road-item"><input type="checkbox" name="roads" value="1">①</label>
                     <label class="road-item"><input type="checkbox" name="roads" value="2">②</label>
@@ -134,6 +135,7 @@
                     <label class="road-item"><input type="checkbox" name="roads" value="10">⑩</label>
                 </div>
             </div>
+
             <label>本日の滞在予定時間</label>
             <select id="stayTime">
                 <option value="">選択してください</option>
@@ -195,9 +197,7 @@
             <h3>3. 訪れた地点と到着した時間</h3>
             <div class="map-instruction">
                 地図をタップして、訪れた場所を記録してください（複数可）
-                <div class="map-example">
-                    例：JR宇部新川駅、市役所、公園など
-                </div>
+                <div class="map-example">例：JR宇部新川駅、市役所、公園など</div>
             </div>
             <div id="map"></div>
             <div id="log">現在記録された地点: 0ヶ所</div>
@@ -209,34 +209,33 @@
     <div id="thanks-page" class="section">
         <div class="check-mark">✓</div>
         <h2>回答ありがとうございました</h2>
-        <p>アンケートは正常に送信されました。<br>ご協力に感謝いたします。</p>
-        <p style="margin-top: 30px; font-size: 13px; color: #888;">※この画面を閉じて終了してください。</p>
+        <p>アンケートは正常に送信されました。</p>
     </div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const gasUrl = "https://script.google.com/macros/s/AKfycbyZ95pavbPd_xNFKFkF-7QMkqpN_Z1WE_NYuPfpUfQeEO3RSWUGXU0K8Fs89uEJntw/exec";
+        // ★あなたが送ってくれた最新のURLに差し替え
+        const gasUrl = "https://script.google.com/macros/s/AKfycbzK-o3o0CZ6CSXbxEnZmmNFm0wueEgh62jUdP4pfbyjsZRn3t-Ruzo90Q0W8mJr4bc/exec";
         
-        const map = L.map('map').setView([33.9515, 131.2465], 15); 
+        let surveyData = [];
+
+        // 地図の初期化（道路・地名が見やすい標準地図）
+        const map = L.map('map').setView([33.9515, 131.2465], 16); 
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
             attribution: '&copy; Google Maps'
         }).addTo(map);
-
-        let surveyData = [];
 
         function toggleExtraQuestion() {
             const transport = document.getElementById('transport').value;
             const area = document.getElementById('extraQuestionArea');
             const label = document.getElementById('extraQuestionLabel');
             const select = document.getElementById('extraDetail');
-
             const options = {
                 "自家用車": ["--- 駐車場を選択 ---", "琴芝駅前駐車場", "宇部市役所駐車場", "平和通り駐車場", "コインパーキング", "その他"],
                 "バス": ["--- バス停を選択 ---", "宇部中央", "新天町入口", "琴芝駅前", "宇部市役所前", "その他"],
                 "JR": ["--- 駅を選択 ---", "宇部駅", "東新川駅", "琴芝駅", "宇部新川駅", "その他"]
             };
-
             select.innerHTML = "";
             if (options[transport]) {
                 label.innerText = transport === "自家用車" ? "利用した駐車場" : (transport === "バス" ? "降車したバス停" : "降車した駅");
@@ -256,18 +255,18 @@
             const lat = e.latlng.lat, lng = e.latlng.lng;
             const popupNode = document.createElement('div');
             popupNode.innerHTML = `
-                <div style="padding:5px;">
+                <div style="padding:5px; min-width:150px;">
                     <label style="margin:0; font-size:12px;">到着時間</label>
-                    <input type="time" id="vTime" style="padding:5px; margin-bottom:10px; width: 100%; box-sizing: border-box;">
+                    <input type="time" id="vTime" style="padding:5px; margin-bottom:10px; width:100%;">
                     <label style="margin:0; font-size:12px;">目的</label>
-                    <select id="p" style="padding:5px; margin-bottom:10px; width: 100%; box-sizing: border-box;">
+                    <select id="p" style="padding:5px; margin-bottom:10px; width:100%;">
                         <option value="飲食">飲食</option>
                         <option value="買い物">買い物</option>
                         <option value="イベント参加">イベント参加</option>
                         <option value="休憩">休憩</option>
                         <option value="その他">その他</option>
                     </select>
-                    <button onclick="savePoint(${lat}, ${lng})" style="width:100%; background:#28a745; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">地点を保存</button>
+                    <button onclick="savePoint(${lat}, ${lng})" style="width:100%; background:#28a745; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold;">この地点を保存</button>
                 </div>
             `;
             L.popup().setLatLng(e.latlng).setContent(popupNode).openOn(map);
@@ -285,14 +284,8 @@
         function sendData() {
             const age = document.getElementById('age').value;
             const transport = document.getElementById('transport').value;
-            const extraDetail = document.getElementById('extraDetail').value;
-
-            if(!age || !transport || surveyData.length === 0) return alert("必須項目（年齢、交通手段、地図の地点登録）を入力してください");
+            if(!age || !transport || surveyData.length === 0) return alert("必須項目をすべて入力してください");
             
-            if(["自家用車", "バス", "JR"].includes(transport) && !extraDetail) {
-                return alert("詳細場所（駅・バス停・駐車場）を選択してください");
-            }
-
             if(confirm("回答を送信しますか？")) {
                 const payload = {
                     userId: "ID_" + new Date().getTime(),
@@ -302,11 +295,11 @@
                         groupSize: document.getElementById('groupSize').value,
                         groupType: document.getElementById('groupType').value,
                         freq: document.getElementById('frequency').value,
-                        usedRoads: Array.from(document.querySelectorAll('input[name="roads"]:checked')).map(c => c.value).join(", "),
                         mainPurpose: document.getElementById('mainPurpose').value,
-                        stay: document.getElementById('stayTime').value,
                         trans: transport,
-                        transDetail: extraDetail,
+                        transDetail: document.getElementById('extraDetail')?.value || "",
+                        usedRoads: Array.from(document.querySelectorAll('input[name="roads"]:checked')).map(c => c.value).join(", "),
+                        stay: document.getElementById('stayTime').value,
                         expE: document.getElementById('expEvent').value,
                         contE: Array.from(document.querySelectorAll('input[name="contE"]:checked')).map(c => c.value).join(", "),
                         expO: document.getElementById('expOutside').value,
@@ -320,8 +313,7 @@
                     document.getElementById('survey-form').style.display = 'none';
                     document.getElementById('thanks-page').style.display = 'block';
                     window.scrollTo(0, 0);
-                })
-                .catch(() => alert("エラーが発生しました"));
+                }).catch(() => alert("エラーが発生しました"));
             }
         }
     </script>
