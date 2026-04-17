@@ -15,13 +15,18 @@
         .checkbox-item { display: flex; align-items: center; font-weight: normal; cursor: pointer; padding: 5px 0; width: 100%; }
         .checkbox-item input { width: auto; margin: 0 10px 0 0; transform: scale(1.2); }
 
+        .road-map-container { margin: 15px 0; padding: 15px; background: #ffffff; border: 1px solid #ddd; border-radius: 8px; text-align: center; }
+        .road-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; }
+        .road-item { display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-weight: bold; font-size: 14px; }
+        .road-item input { margin-right: 5px; width: 18px; height: 18px; }
+
         #map { height: 400px; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; }
         #log { margin-top: 10px; font-size: 14px; color: #0056b3; background: #eef4ff; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px solid #b3d7ff;}
         #sendBtn { width: 100%; padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 30px; }
         
         #extraQuestionArea { display:none; margin-top:10px; padding:12px; background:#eef4ff; border: 1px solid #cce0ff; border-radius:8px; }
         
-        .map-instruction { color: #bd2130; font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 10px; }
+        .map-instruction { color: #333; font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 10px; }
         .map-example { font-size: 13px; color: #666; margin-top: 8px; font-style: normal; font-weight: normal; }
 
         #thanks-page { display: none; text-align: center; padding: 50px 20px; }
@@ -113,6 +118,26 @@
                 <select id="extraDetail"></select>
             </div>
 
+            <div class="road-map-container">
+                <label style="color: #333; margin-top: 0; line-height: 1.4;">
+                    【道路の確認】今日通った道路をすべて選んでください（複数可）
+                </label>
+                <img src="map.png" alt="道路地図" style="width: 100%; max-width: 500px; height: auto; border: 1px solid #ccc; margin-top: 10px; display: block; margin-left: auto; margin-right: auto; border-radius: 5px;">                
+                <div class="road-grid">
+                    <label class="road-item"><input type="checkbox" name="roads" value="1">①</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="2">②</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="3">③</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="4">④</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="5">⑤</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="6">⑥</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="7">⑦</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="8">⑧</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="9">⑨</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="10">⑩</label>
+                </div>
+                <label class="checkbox-item" style="margin-top: 10px; font-weight: normal; justify-content: center;"><input type="checkbox" name="roads" value="なし"> この中にはない / わからない</label>
+            </div>
+
             <label>本日の滞在予定時間</label>
             <select id="stayTime">
                 <option value="">選択してください</option>
@@ -125,7 +150,6 @@
 
         <div class="section">
             <h3>2. 消費について</h3>
-            
             <label>イベント「内」での消費金額</label>
             <select id="expEvent">
                 <option value="">選択してください</option>
@@ -195,7 +219,6 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        // 更新された新しいGAS URL
         const gasUrl = "https://script.google.com/macros/s/AKfycbyZ95pavbPd_xNFKFkF-7QMkqpN_Z1WE_NYuPfpUfQeEO3RSWUGXU0K8Fs89uEJntw/exec";
         
         const map = L.map('map').setView([33.9515, 131.2465], 15); 
@@ -239,12 +262,12 @@
             popupNode.innerHTML = `
                 <div style="padding:5px;">
                     <label style="margin:0; font-size:12px;">到着時間</label>
-                    <input type="time" id="vTime" style="padding:5px; margin-bottom:10px;">
+                    <input type="time" id="vTime" style="padding:5px; margin-bottom:10px; width: 100%; box-sizing: border-box;">
                     <label style="margin:0; font-size:12px;">目的</label>
-                    <select id="p" style="padding:5px; margin-bottom:10px;">
+                    <select id="p" style="padding:5px; margin-bottom:10px; width: 100%; box-sizing: border-box;">
                         <option value="飲食">飲食</option>
                         <option value="買い物">買い物</option>
-                        <option value="見学">見学</option>
+                        <option value="イベント参加">イベント参加</option>
                         <option value="休憩">休憩</option>
                         <option value="その他">その他</option>
                     </select>
@@ -283,6 +306,7 @@
                         groupSize: document.getElementById('groupSize').value,
                         groupType: document.getElementById('groupType').value,
                         freq: document.getElementById('frequency').value,
+                        usedRoads: Array.from(document.querySelectorAll('input[name="roads"]:checked')).map(c => c.value).join(", "),
                         mainPurpose: document.getElementById('mainPurpose').value,
                         stay: document.getElementById('stayTime').value,
                         trans: transport,
