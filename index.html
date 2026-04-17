@@ -23,7 +23,7 @@
 
         #map { height: 450px; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; background: #f0f0f0; }
         #log { margin-top: 10px; font-size: 14px; color: #0056b3; background: #eef4ff; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px solid #b3d7ff;}
-        #sendBtn { width: 100%; padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 30px; }
+        #sendBtn { width: 100%; padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 30px; transition: 0.3s; }
         
         #extraQuestionArea { display:none; margin-top:10px; padding:12px; background:#eef4ff; border: 1px solid #cce0ff; border-radius:8px; }
         
@@ -197,7 +197,6 @@
             <h3>3. 訪れた地点と到着した時間</h3>
             <div class="map-instruction">
                 地図をタップして、訪れた場所を記録してください（複数可）
-                <div class="map-example">例：JR宇部新川駅、市役所、公園など</div>
             </div>
             <div id="map"></div>
             <div id="log">現在記録された地点: 0ヶ所</div>
@@ -214,12 +213,10 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // ★あなたが送ってくれた最新のURLに差し替え
+        // 最新のデプロイURL
         const gasUrl = "https://script.google.com/macros/s/AKfycbzK-o3o0CZ6CSXbxEnZmmNFm0wueEgh62jUdP4pfbyjsZRn3t-Ruzo90Q0W8mJr4bc/exec";
         
         let surveyData = [];
-
-        // 地図の初期化（道路・地名が見やすい標準地図）
         const map = L.map('map').setView([33.9515, 131.2465], 16); 
         L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
@@ -284,9 +281,16 @@
         function sendData() {
             const age = document.getElementById('age').value;
             const transport = document.getElementById('transport').value;
+            const btn = document.getElementById('sendBtn');
+
             if(!age || !transport || surveyData.length === 0) return alert("必須項目をすべて入力してください");
             
             if(confirm("回答を送信しますか？")) {
+                // 二重送信防止
+                btn.disabled = true;
+                btn.innerText = "送信中...";
+                btn.style.backgroundColor = "#ccc";
+
                 const payload = {
                     userId: "ID_" + new Date().getTime(),
                     attr: {
@@ -313,7 +317,12 @@
                     document.getElementById('survey-form').style.display = 'none';
                     document.getElementById('thanks-page').style.display = 'block';
                     window.scrollTo(0, 0);
-                }).catch(() => alert("エラーが発生しました"));
+                }).catch(() => {
+                    alert("送信エラーが発生しました。");
+                    btn.disabled = false;
+                    btn.innerText = "回答を送信する";
+                    btn.style.backgroundColor = "#007bff";
+                });
             }
         }
     </script>
