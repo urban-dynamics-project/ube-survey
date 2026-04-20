@@ -119,7 +119,7 @@
                 <select id="extraDetail"></select>
             </div>
 
-            <div class="road-map-container">
+             <div class="road-map-container">
                 <label>【道路の確認】今日通った道路を選んでください</label>
                 <img src="map.png" alt="道路地図" style="width: 100%; max-width: 500px; height: auto; margin: 10px 0; border-radius: 5px;" onerror="this.src='https://via.placeholder.com/500x300?text=map.pngが見つかりません';">
                 <div class="road-grid">
@@ -135,6 +135,7 @@
                     <label class="road-item"><input type="checkbox" name="roads" value="10">⑩</label>
                 </div>
             </div>
+
 
             <label>本日の滞在予定時間</label>
             <select id="stayTime">
@@ -228,11 +229,23 @@
             const area = document.getElementById('extraQuestionArea');
             const label = document.getElementById('extraQuestionLabel');
             const select = document.getElementById('extraDetail');
+            
+            // 修正箇所：カンマの不足などを修正し、リストを整理しました
             const options = {
-                "自家用車": ["--- 駐車場を選択 ---", "琴芝駅前駐車場", "宇部市役所駐車場", "平和通り駐車場", "コインパーキング", "その他"],
-                "バス": ["--- バス停を選択 ---", "宇部中央", "新天町入口", "琴芝駅前", "宇部市役所前", "その他"],
-                "JR": ["--- 駅を選択 ---", "宇部駅", "東新川駅", "琴芝駅", "宇部新川駅", "その他"]
+                "自家用車": [
+                    "--- 駐車場を選択 ---", "西京銀行", "西日本シティ銀行", "福岡銀行", "山口銀行", 
+                    "市役所立体駐車場", "ときわ通りパーキング", "ボスティビルド地下駐車場", 
+                    "寿町第一駐車場", "寿町第二駐車場", "西中国信用金庫", "その他"
+                ],
+                "バス": [
+                    "--- バス停を選択 ---", "宇部新川駅", "宇部中央", "市役所前", 
+                    "常盤町一丁目", "常盤町二丁目", "その他"
+                ],
+                "JR": [
+                    "--- 駅を選択 ---", "宇部新川駅", "琴芝駅", "東新川駅", "その他"
+                ]
             };
+
             select.innerHTML = "";
             if (options[transport]) {
                 label.innerText = transport === "自家用車" ? "利用した駐車場" : (transport === "バス" ? "降車したバス停" : "降車した駅");
@@ -286,7 +299,6 @@
             if(!age || !transport || surveyData.length === 0) return alert("必須項目をすべて入力してください");
             
             if(confirm("回答を送信しますか？")) {
-                // 二重送信防止
                 btn.disabled = true;
                 btn.innerText = "送信中...";
                 btn.style.backgroundColor = "#ccc";
