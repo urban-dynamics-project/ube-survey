@@ -40,8 +40,18 @@
         <h2 style="text-align:center; font-size: 20px;">調査アンケート</h2>
 
         <div class="section">
+            <h3>0. イベント参加地について</h3>
+            <label>イベント参加地はどちらですか？ <span style="color:red;">*必須</span></label>
+            <select id="eventLocation">
+                <option value="">選択してください</option>
+                <option value="市役所">市役所</option>
+                <option value="商店街">商店街</option>
+            </select>
+        </div>
+
+        <div class="section">
             <h3>1. あなたについて</h3>
-            <label>年齢</label>
+            <label>年齢 <span style="color:red;">*必須</span></label>
             <select id="age">
                 <option value="">選択してください</option>
                 <option value="9歳以下">9歳以下</option>
@@ -104,7 +114,7 @@
                 <option value="その他">その他</option>
             </select>
 
-            <label>市街地へ来る際に利用した主な交通手段</label>
+            <label>市街地へ来る際に利用した主な交通手段 <span style="color:red;">*必須</span></label>
             <select id="transport" onchange="toggleExtraQuestion()">
                 <option value="">選択してください</option>
                 <option value="徒歩">徒歩</option>
@@ -198,7 +208,7 @@
         <div class="section">
             <h3>3. 今日、訪れた、または訪れる予定の地点と到着した、到着予定の時間</h3>
             <div class="map-instruction">
-                地図をタップして、訪れた、または訪れる予定の場所を記録してください（複数可）
+                地図をタップして、訪れた、または訪れる予定の場所を記録してください（複数可） <span style="color:red;">*必須</span>
             </div>
             <div id="map"></div>
             <div id="log">現在記録された地点: 0ヶ所</div>
@@ -215,8 +225,8 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 最新のデプロイURL
-        const gasUrl = "https://script.google.com/macros/s/AKfycbzK-o3o0CZ6CSXbxEnZmmNFm0wueEgh62jUdP4pfbyjsZRn3t-Ruzo90Q0W8mJr4bc/exec";
+        // 提供された最新のデプロイURLに差し替え済みです
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwvwUQkwWtPj8WJPwkQIexmqEkF-_O7idF3-vfu0w--7u-fFptulaivbW_y87kGlZk/exec";
         
         let surveyData = [];
         const map = L.map('map').setView([33.9515, 131.2465], 16); 
@@ -231,7 +241,6 @@
             const label = document.getElementById('extraQuestionLabel');
             const select = document.getElementById('extraDetail');
             
-            // 修正箇所：カンマの不足などを修正し、リストを整理しました
             const options = {
                 "自家用車": [
                     "--- 駐車場を選択 ---", "市役所立体駐車場", "寿町第一駐車場", "寿町第二駐車場", "その他"
@@ -291,11 +300,14 @@
         }
 
         function sendData() {
+            const eventLocation = document.getElementById('eventLocation').value;
             const age = document.getElementById('age').value;
             const transport = document.getElementById('transport').value;
             const btn = document.getElementById('sendBtn');
 
-            if(!age || !transport || surveyData.length === 0) return alert("必須項目をすべて入力してください");
+            if(!eventLocation || !age || !transport || surveyData.length === 0) {
+                return alert("必須項目（イベント参加地・年齢・交通手段・マップの地点登録）をすべて入力してください");
+            }
             
             if(confirm("回答を送信しますか？")) {
                 btn.disabled = true;
@@ -305,6 +317,7 @@
                 const payload = {
                     userId: "ID_" + new Date().getTime(),
                     attr: {
+                        eventLocation: eventLocation,
                         age: age,
                         gender: document.getElementById('gender').value,
                         groupSize: document.getElementById('groupSize').value,
