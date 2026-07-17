@@ -41,11 +41,11 @@
 
         <div class="section">
             <h3>イベント参加地について</h3>
-            <label>イベント参加地はどちらですか？</label>
+            <label>今日はどちらのイベントに参加しましたか？</label>
             <select id="eventLocation">
                 <option value="">選択してください</option>
-                <option value="市役所">市役所</option>
-                <option value="商店街">商店街</option>
+                <option value="市庁舎周辺のイベント">市庁舎周辺のイベント</option>
+                <option value="新天町商店街周辺のイベント">新天町商店街周辺のイベント</option>
             </select>
         </div>
 
@@ -145,6 +145,9 @@
                     <label class="road-item"><input type="checkbox" name="roads" value="8">⑧</label>
                     <label class="road-item"><input type="checkbox" name="roads" value="9">⑨</label>
                     <label class="road-item"><input type="checkbox" name="roads" value="10">⑩</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="11">⑪</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="12">⑫</label>
+                    <label class="road-item"><input type="checkbox" name="roads" value="13">⑬</label>
                 </div>
             </div>
 
@@ -208,7 +211,7 @@
         <div class="section">
             <h3>3. 今日、訪れた、または訪れる予定の地点と到着した、到着予定の時間</h3>
             <div class="map-instruction">
-                地図をタップして、訪れた、または訪れる予定の場所を記録してください（複数可） <span style="color:red;">*必須</span>
+                地図をタップして、訪れた、または訪れる予定の場所を記録してください（参加イベント地含む）（複数可） <span style="color:red;">*必須</span>
             </div>
             <div id="map"></div>
             <div id="log">現在記録された地点: 0ヶ所</div>
