@@ -40,12 +40,26 @@
         <h2 style="text-align:center; font-size: 20px;">調査アンケート</h2>
 
         <div class="section">
-            <h3>イベント参加地について</h3>
-            <label>今日はどちらのイベントに参加しましたか？</label>
-            <select id="eventLocation">
+            <h3>「マチナカプレイゾーン」参加日について</h3>
+            <label>イベントに参加された日付を選択してください</label>
+            <select id="eventDate">
                 <option value="">選択してください</option>
-                <option value="市庁舎周辺のイベント">市庁舎周辺のイベント</option>
-                <option value="新天町商店街周辺のイベント">新天町商店街周辺のイベント</option>
+                <option value="8月1日">8月1日（金）</option>
+                <option value="8月2日">8月2日（土）</option>
+                <option value="8月3日">8月3日（日）</option>
+                <option value="8月4日">8月4日（月）</option>
+                <option value="8月5日">8月5日（火）</option>
+                <option value="8月6日">8月6日（水）</option>
+                <option value="8月7日">8月7日（木）</option>
+                <option value="8月8日">8月8日（金）</option>
+                <option value="8月9日">8月9日（土）</option>
+                <option value="8月10日">8月10日（日）</option>
+                <option value="8月11日">8月11日（月）</option>
+                <option value="8月12日">8月12日（火）</option>
+                <option value="8月13日">8月13日（水）</option>
+                <option value="8月14日">8月14日（木）</option>
+                <option value="8月15日">8月15日（金）</option>
+                <option value="8月16日">8月16日（土）</option>
             </select>
         </div>
 
@@ -228,7 +242,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // 提供された最新のデプロイURLに差し替え済みです
         const gasUrl ="https://script.google.com/macros/s/AKfycbwJcW_xgqQkguhe_zbT9-0stHFZQXN-3_MLZjhFf2jT8DfsT7WaVmav2PzrM6BEhpI/exec";
         
         let surveyData = [];
@@ -303,13 +316,13 @@
         }
 
         function sendData() {
-            const eventLocation = document.getElementById('eventLocation').value;
+            const eventDate = document.getElementById('eventDate').value;
             const age = document.getElementById('age').value;
             const transport = document.getElementById('transport').value;
             const btn = document.getElementById('sendBtn');
 
-            if(!eventLocation || !age || !transport || surveyData.length === 0) {
-                return alert("必須項目（イベント参加地・年齢・交通手段・マップの地点登録）をすべて入力してください");
+            if(!eventDate || !age || !transport || surveyData.length === 0) {
+                return alert("必須項目（参加日・年齢・交通手段・マップの地点登録）をすべて入力してください");
             }
             
             if(confirm("回答を送信しますか？")) {
@@ -320,7 +333,8 @@
                 const payload = {
                     userId: "ID_" + new Date().getTime(),
                     attr: {
-                        eventLocation: eventLocation,
+                        eventName: "マチナカプレイゾーン",
+                        eventDate: eventDate,
                         age: age,
                         gender: document.getElementById('gender').value,
                         groupSize: document.getElementById('groupSize').value,
