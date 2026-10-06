@@ -39,28 +39,14 @@
     <div id="survey-form">
         <h2 style="text-align:center; font-size: 20px;">調査アンケート</h2>
 
+        <!-- マップによる場所選択セクション（先頭） -->
         <div class="section">
-            <h3>「マチナカプレイゾーン」参加日について</h3>
-            <label>イベントに参加された日付を選択してください</label>
-            <select id="eventDate">
-                <option value="">選択してください</option>
-                <option value="8月1日">8月1日（土）</option>
-                <option value="8月2日">8月2日（日）</option>
-                <option value="8月3日">8月3日（月）</option>
-                <option value="8月4日">8月4日（火）</option>
-                <option value="8月5日">8月5日（水）</option>
-                <option value="8月6日">8月6日（木）</option>
-                <option value="8月7日">8月7日（金）</option>
-                <option value="8月8日">8月8日（土）</option>
-                <option value="8月9日">8月9日（日）</option>
-                <option value="8月10日">8月10日（月）</option>
-                <option value="8月11日">8月11日（火）</option>
-                <option value="8月12日">8月12日（水）</option>
-                <option value="8月13日">8月13日（木）</option>
-                <option value="8月14日">8月14日（金）</option>
-                <option value="8月15日">8月15日（土）</option>
-                <option value="8月16日">8月16日（日）</option>
-            </select>
+            <h3>訪れた地点の記録</h3>
+            <div class="map-instruction">
+                地図をタップして、訪れた、または訪れる予定の場所を記録してください（参加イベント地含む）できれば複数個所選択お願いします <span style="color:red;">*必須</span>
+            </div>
+            <div id="map"></div>
+            <div id="log">現在記録された地点: 0ヶ所</div>
         </div>
 
         <div class="section">
@@ -165,7 +151,6 @@
                 </div>
             </div>
 
-
             <label>今日の市街地での滞在予定時間</label>
             <select id="stayTime">
                 <option value="">選択してください</option>
@@ -222,15 +207,6 @@
             </div>
         </div>
 
-        <div class="section">
-            <h3>3. 今日、訪れた、または訪れる予定の地点と到着した、到着予定の時間</h3>
-            <div class="map-instruction">
-                地図をタップして、訪れた、または訪れる予定の場所を記録してください（参加イベント地含む）できれば複数個所選択お願いします <span style="color:red;">*必須</span>
-            </div>
-            <div id="map"></div>
-            <div id="log">現在記録された地点: 0ヶ所</div>
-        </div>
-
         <button id="sendBtn" onclick="sendData()">回答を送信する</button>
     </div>
 
@@ -250,6 +226,9 @@
             subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
             attribution: '&copy; Google Maps'
         }).addTo(map);
+
+        // 地図が非表示から表示に切り替わったときにタイルが崩れるのを防ぐため、読み込み後にサイズを再計算
+        setTimeout(function() { map.invalidateSize(); }, 100);
 
         function toggleExtraQuestion() {
             const transport = document.getElementById('transport').value;
@@ -316,13 +295,12 @@
         }
 
         function sendData() {
-            const eventDate = document.getElementById('eventDate').value;
             const age = document.getElementById('age').value;
             const transport = document.getElementById('transport').value;
             const btn = document.getElementById('sendBtn');
 
-            if(!eventDate || !age || !transport || surveyData.length === 0) {
-                return alert("必須項目（参加日・年齢・交通手段・マップの地点登録）をすべて入力してください");
+            if(!age || !transport || surveyData.length === 0) {
+                return alert("必須項目（年齢・交通手段・マップの地点登録）をすべて入力してください");
             }
             
             if(confirm("回答を送信しますか？")) {
@@ -333,8 +311,7 @@
                 const payload = {
                     userId: "ID_" + new Date().getTime(),
                     attr: {
-                        eventName: "マチナカプレイゾーン",
-                        eventDate: eventDate,
+                        eventName: "イベントアンケート",
                         age: age,
                         gender: document.getElementById('gender').value,
                         groupSize: document.getElementById('groupSize').value,
