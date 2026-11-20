@@ -22,13 +22,12 @@
         .road-item input { margin-right: 5px; width: 18px; height: 18px; }
 
         #map { height: 450px; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; background: #e9eef2; }
-        #log { margin-top: 10px; font-size: 14px; color: #0056b3; background: #eef4ff; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px solid #b3d7ff;}
+        #log { margin-top: 10px; font-size: 14px; color: #0056b3; background: #eef4ff; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px solid #b3d7ff; line-height: 1.5; }
         #sendBtn { width: 100%; padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 30px; transition: 0.3s; }
         
         #extraQuestionArea { display:none; margin-top:10px; padding:12px; background:#eef4ff; border: 1px solid #cce0ff; border-radius:8px; }
         
-        .map-instruction { color: #333; font-size: 16px; font-weight: bold; text-align: center; margin-bottom: 10px; }
-        .map-example { font-size: 13px; color: #666; margin-top: 8px; font-style: normal; font-weight: normal; }
+        .map-instruction { color: #333; font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 10px; line-height: 1.6; }
 
         #thanks-page { display: none; text-align: center; padding: 50px 20px; }
         .check-mark { font-size: 80px; color: #28a745; margin-bottom: 20px; }
@@ -41,7 +40,7 @@
 
         <div class="section">
             <h3>1. あなたについて</h3>
-            <label>年齢 </label>
+            <label>年齢</label>
             <select id="age">
                 <option value="">選択してください</option>
                 <option value="9歳以下">9歳以下</option>
@@ -121,7 +120,7 @@
                 <select id="extraDetail"></select>
             </div>
 
-             <div class="road-map-container">
+            <div class="road-map-container">
                 <label>【市街地内で歩いた道】今日、市街地内で歩いた道があれば、番号で選んでください</label>
                 <img src="map.png" alt="道路地図" style="width: 100%; max-width: 500px; height: auto; margin: 10px 0; border-radius: 5px;" onerror="this.src='https://via.placeholder.com/500x300?text=map.pngが見つかりません';">
                 <div class="road-grid">
@@ -198,12 +197,12 @@
         </div>
 
         <div class="section">
-            <h3>3. 今日、訪れた、または訪れる予定の地点と到着した、到着予定の時間</h3>
+            <h3>3. 今日、訪れた、または訪れる予定の地点と到着した、到着予定の時間（複数選択可）</h3>
             <div class="map-instruction">
-                地図をタップして、訪れた、または訪れる予定の場所を記録してください（参加イベント地含む）地点を選択しても個人の特定に至ることはありません。研究にかかわる大事な部分ですのでできるだけ詳細に答えていただけると幸いです。よろしくお願いします。 <span style="color:red;">*必須</span>
+                地図をタップして、訪れた・訪れる予定の場所を<strong>複数</strong>記録してください（参加イベント地やその前後で訪れた飲食店やスーパーなど、<strong>2箇所以上</strong>の登録にご協力お願いします）。研究の重要なデータとなりますが、個人を特定するものではありません。<span style="color:red;">*必須</span>
             </div>
             <div id="map"></div>
-            <div id="log">現在記録された地点: 0ヶ所</div>
+            <div id="log">現在記録された地点: 0ヶ所（訪れた・訪れる予定の場所を地図上でタップしてください）</div>
         </div>
 
         <button id="sendBtn" onclick="sendData()">回答を送信する</button>
@@ -223,6 +222,8 @@
         let map;
 
         window.addEventListener('DOMContentLoaded', function () {
+            updateLog();
+
             if (typeof L === 'undefined') {
                 document.getElementById('map').innerHTML = '<div style="padding:20px;text-align:center;color:#c00;">地図ライブラリの読み込みに失敗しました。</div>';
                 return;
@@ -230,7 +231,6 @@
 
             map = L.map('map').setView([33.9515, 131.2465], 16);
 
-            // 最初のGoogleマップ風のタイル（読み込めない場合は国土地理院タイルに自動切替）
             const googleLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
                 attribution: '&copy; Google Maps',
@@ -309,12 +309,25 @@
             }
         }
 
+        function updateLog() {
+            const count = surveyData.length;
+            const logEl = document.getElementById('log');
+
+            if (count === 0) {
+                logEl.innerHTML = '現在記録された地点: 0ヶ所（訪れた・訪れる予定の場所を地図上でタップしてください）';
+            } else if (count === 1) {
+                logEl.innerHTML = '現在記録された地点: 1ヶ所（ほかに立ち寄った・寄る予定の場所があれば続けてタップしてください）';
+            } else {
+                logEl.innerHTML = `現在記録された地点: ${count}ヶ所（さらに追加する場合は地図をタップしてください）`;
+            }
+        }
+
         function savePoint(lat, lng) {
             const time = document.getElementById('vTime').value, purpose = document.getElementById('p').value;
             if(!time) return alert("到着時間を入力してください");
             surveyData.push({ lat, lng, time, purpose });
             L.marker([lat, lng]).addTo(map).bindPopup(`${purpose} (${time})`).openPopup();
-            document.getElementById('log').innerHTML = `現在記録された地点: ${surveyData.length}ヶ所`;
+            updateLog();
             map.closePopup();
         }
 
