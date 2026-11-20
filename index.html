@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>調査アンケート</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { font-family: sans-serif; margin: 0; padding: 10px; background-color: #f4f7f6; color: #333; }
@@ -21,7 +21,7 @@
         .road-item { display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #ddd; padding: 8px; border-radius: 4px; font-weight: bold; font-size: 14px; }
         .road-item input { margin-right: 5px; width: 18px; height: 18px; }
 
-        #map { height: 450px; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; background: #f0f0f0; }
+        #map { height: 450px; width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; background: #e9eef2; }
         #log { margin-top: 10px; font-size: 14px; color: #0056b3; background: #eef4ff; padding: 10px; border-radius: 6px; font-weight: bold; text-align: center; border: 1px solid #b3d7ff;}
         #sendBtn { width: 100%; padding: 20px; background-color: #007bff; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; margin-bottom: 30px; transition: 0.3s; }
         
@@ -38,16 +38,6 @@
 
     <div id="survey-form">
         <h2 style="text-align:center; font-size: 20px;">調査アンケート</h2>
-
-        <!-- マップによる場所選択セクション（先頭） -->
-        <div class="section">
-            <h3>訪れた地点の記録</h3>
-            <div class="map-instruction">
-                地図をタップして、訪れた、または訪れる予定の場所を記録してください（参加イベント地含む）できれば複数個所選択お願いします <span style="color:red;">*必須</span>
-            </div>
-            <div id="map"></div>
-            <div id="log">現在記録された地点: 0ヶ所</div>
-        </div>
 
         <div class="section">
             <h3>1. あなたについて</h3>
@@ -207,6 +197,15 @@
             </div>
         </div>
 
+        <div class="section">
+            <h3>3. 今日、訪れた、または訪れる予定の地点と到着した、到着予定の時間</h3>
+            <div class="map-instruction">
+                地図をタップして、訪れた、または訪れる予定の場所を記録してください（参加イベント地含む）できれば複数個所選択お願いします <span style="color:red;">*必須</span>
+            </div>
+            <div id="map"></div>
+            <div id="log">現在記録された地点: 0ヶ所</div>
+        </div>
+
         <button id="sendBtn" onclick="sendData()">回答を送信する</button>
     </div>
 
@@ -216,19 +215,65 @@
         <p>アンケートは正常に送信されました。</p>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const gasUrl ="https://script.google.com/macros/s/AKfycbwJcW_xgqQkguhe_zbT9-0stHFZQXN-3_MLZjhFf2jT8DfsT7WaVmav2PzrM6BEhpI/exec";
+        const gasUrl = "https://script.google.com/macros/s/AKfycbwJcW_xgqQkguhe_zbT9-0stHFZQXN-3_MLZjhFf2jT8DfsT7WaVmav2PzrM6BEhpI/exec";
         
         let surveyData = [];
-        const map = L.map('map').setView([33.9515, 131.2465], 16); 
-        L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-            attribution: '&copy; Google Maps'
-        }).addTo(map);
+        let map;
 
-        // 地図が非表示から表示に切り替わったときにタイルが崩れるのを防ぐため、読み込み後にサイズを再計算
-        setTimeout(function() { map.invalidateSize(); }, 100);
+        window.addEventListener('DOMContentLoaded', function () {
+            if (typeof L === 'undefined') {
+                document.getElementById('map').innerHTML = '<div style="padding:20px;text-align:center;color:#c00;">地図ライブラリの読み込みに失敗しました。</div>';
+                return;
+            }
+
+            map = L.map('map').setView([33.9515, 131.2465], 16);
+
+            // 最初のGoogleマップ風のタイル（読み込めない場合は国土地理院タイルに自動切替）
+            const googleLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: '&copy; Google Maps',
+                maxZoom: 20
+            });
+
+            const gsiFallbackLayer = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+                attribution: '&copy; 国土地理院',
+                maxZoom: 18
+            });
+
+            let tileErrorCount = 0;
+            googleLayer.on('tileerror', function () {
+                tileErrorCount++;
+                if (tileErrorCount >= 3 && !map.hasLayer(gsiFallbackLayer)) {
+                    map.removeLayer(googleLayer);
+                    gsiFallbackLayer.addTo(map);
+                }
+            });
+
+            googleLayer.addTo(map);
+
+            map.on('click', function(e) {
+                const lat = e.latlng.lat, lng = e.latlng.lng;
+                const popupNode = document.createElement('div');
+                popupNode.innerHTML = `
+                    <div style="padding:5px; min-width:150px;">
+                        <label style="margin:0; font-size:12px;">到着時間</label>
+                        <input type="time" id="vTime" style="padding:5px; margin-bottom:10px; width:100%;">
+                        <label style="margin:0; font-size:12px;">目的</label>
+                        <select id="p" style="padding:5px; margin-bottom:10px; width:100%;">
+                            <option value="飲食">飲食</option>
+                            <option value="買い物">買い物</option>
+                            <option value="イベント参加">イベント参加</option>
+                            <option value="休憩">休憩</option>
+                            <option value="その他">その他</option>
+                        </select>
+                        <button onclick="savePoint(${lat}, ${lng})" style="width:100%; background:#28a745; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold;">この地点を保存</button>
+                    </div>
+                `;
+                L.popup().setLatLng(e.latlng).setContent(popupNode).openOn(map);
+            });
+        });
 
         function toggleExtraQuestion() {
             const transport = document.getElementById('transport').value;
@@ -264,27 +309,6 @@
             }
         }
 
-        map.on('click', function(e) {
-            const lat = e.latlng.lat, lng = e.latlng.lng;
-            const popupNode = document.createElement('div');
-            popupNode.innerHTML = `
-                <div style="padding:5px; min-width:150px;">
-                    <label style="margin:0; font-size:12px;">到着時間</label>
-                    <input type="time" id="vTime" style="padding:5px; margin-bottom:10px; width:100%;">
-                    <label style="margin:0; font-size:12px;">目的</label>
-                    <select id="p" style="padding:5px; margin-bottom:10px; width:100%;">
-                        <option value="飲食">飲食</option>
-                        <option value="買い物">買い物</option>
-                        <option value="イベント参加">イベント参加</option>
-                        <option value="休憩">休憩</option>
-                        <option value="その他">その他</option>
-                    </select>
-                    <button onclick="savePoint(${lat}, ${lng})" style="width:100%; background:#28a745; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; font-weight:bold;">この地点を保存</button>
-                </div>
-            `;
-            L.popup().setLatLng(e.latlng).setContent(popupNode).openOn(map);
-        });
-
         function savePoint(lat, lng) {
             const time = document.getElementById('vTime').value, purpose = document.getElementById('p').value;
             if(!time) return alert("到着時間を入力してください");
@@ -309,9 +333,10 @@
                 btn.style.backgroundColor = "#ccc";
 
                 const payload = {
+                    sheetName: "スイーツ秋",
                     userId: "ID_" + new Date().getTime(),
                     attr: {
-                        eventName: "イベントアンケート",
+                        eventName: "スイーツ秋",
                         age: age,
                         gender: document.getElementById('gender').value,
                         groupSize: document.getElementById('groupSize').value,
